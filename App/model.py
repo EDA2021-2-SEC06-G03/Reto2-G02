@@ -48,13 +48,15 @@ los mismos.
 
 def newCatalog(Tipo_Arreglo):
     catalog = {'artworks': lt.newList(Tipo_Arreglo),
-               'tecnica': None}
+               'tecnica': None,
+               'artist': lt.newList(Tipo_Arreglo)}
 
     "Indice con tecnica/medio"
     catalog['tecnica'] = mp.newMap(20,
                                    maptype='CHAINING',
                                    loadfactor=4.0,
                                    comparefunction=compareMapMedio)
+    
     return catalog
 
 
@@ -360,7 +362,13 @@ def totalObras(nombreArtista, catalog):
     # El nombre de la tecnica mas usada, la cantidad de veces que esta se uso y la lista de obras donde se aplico
     tecnicaMayor, contMayor, listaObrasMayor = tecnicaMayorCantidad(listaTecnicas, listaObras)
     return lt.size(listaObras), lt.size(listaTecnicas), idArtista, tecnicaMayor, contMayor, listaObrasMayor
+def Obrasmasantiguas(catalog, tecnica):
+    listaObrasTecnica = mp.get(catalog["tecnica"], tecnica)
+    listaOrdenada = ins.sort(me.getValue(listaObrasTecnica)['obras'], cmpArtworkByDate)
+    listalimpia = eliminarCampoVacio(listaOrdenada, "Date")
 
+    return listalimpia
+    
 
 # Funciones de ordenamiento
 

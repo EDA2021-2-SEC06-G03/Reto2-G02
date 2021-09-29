@@ -79,6 +79,8 @@ def obrasDepartamento(nombreDepartamento, catalog):
 
 def totalObras(nombreArtista, catalog):
     return model.totalObras(nombreArtista, catalog)
+def  Obrasmasantiguas(catalog,tecnica):
+    return model.Obrasmasantiguas(catalog,tecnica)
 
 
 # Funciones listar cronologicamente

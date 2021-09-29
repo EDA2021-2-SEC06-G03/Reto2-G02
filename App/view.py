@@ -194,6 +194,17 @@ def resp_req5():
     imprimirObrasTransportar(ultimos5Lista(listaTransporteOrdenada))
     print("----- Obras mas antiguas ------")
     imprimirObrasTransportar(primeros5Lista(listaOrdenada))
+def resp_reqlab ():
+    n=int(input("ingrese la cantidad de obras a consultar:"))
+    tecnica=input("Ingrese el nombre de la tecnica:")
+    listalimpia=controller.Obrasmasantiguas(catalog,tecnica)
+    print("============ Respuesta Requerimiento Lab ============")
+   
+    Cont= 0 
+    for artwork in lt.iterator(listalimpia):
+        if Cont<n:
+            print(artwork)
+            Cont+=1
 
 """
 Menu principal
@@ -212,15 +223,7 @@ while True:
         catalog = initCatalog(tipo_Arreglo)
         loadData(catalog)
 
-        catalog['years'] = mp.newMap(2, maptype='PROBING', loadfactor=0.5)
-        print(catalog['years'])
-        mp.put(catalog['years'], 15, 'novecientos')
-        mp.put(catalog['years'], 618513, 'gerard')
-        mp.put(catalog['years'], 12, 'Camilo')
-        print(catalog['years'])
-        print(mp.get(catalog['years'], 15))
-        print(mp.get(catalog['years'], 15)['value'])
-        print(catalog['years'])
+       
         print('Artistas cargados: ' + str(lt.size(catalog['artist'])))
         print('Obras cargadas: ' + str(lt.size(catalog['artworks'])))
 
@@ -252,7 +255,7 @@ while True:
         print("Propuesta de una nueva exposición:  ")
 
     elif int(inputs) == 9:
-        print("Hola")
+       resp_reqlab()
     else:
         sys.exit(9)
 sys.exit(0)
