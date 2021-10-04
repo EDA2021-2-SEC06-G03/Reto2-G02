@@ -205,7 +205,15 @@ def resp_reqlab ():
         if Cont<n:
             print(artwork)
             Cont+=1
-
+def resp_req1_maps():
+    fecha_inicial = input("Ingresa el año inicial: ")
+    fecha_final = input("Ingresa el año final: ")
+    listaordenadaartistas = controller.cronologico_artistasmaps(catalog,nacimiento)
+    tam_lista = lt.size(listaordenadaartistas)
+    print("============ Respuesta Requerimiento 1 ============")
+    print("La cantidad de artistas nacidos entre " + fecha_inicial + " y " + fecha_final + " es de " + str(tam_lista))
+    print("Los primeros 3 y los ultimos 3 artistas en este rango son: ")
+    imprimirArtistasCrono(listaordenadaartistas)
 """
 Menu principal
 """

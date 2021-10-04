@@ -77,6 +77,7 @@ def obrasDepartamento(nombreDepartamento, catalog):
     return model.obrasDepartamento(nombreDepartamento, catalog)
 
 
+
 def totalObras(nombreArtista, catalog):
     return model.totalObras(nombreArtista, catalog)
 def  Obrasmasantiguas(catalog,tecnica):
@@ -90,3 +91,5 @@ def listarCronoArtistas(fecha_inicial, fecha_final, catalog):
 
 def listarCronoObras(fecha_inicial, fecha_final, catalog):
     return model.cronologicoObras(fecha_inicial, fecha_final, catalog)
+def cronologico_artistasmaps(catalog ,nacimiento):
+    return model.cronologico_artistasmaps(catalog,nacimiento)

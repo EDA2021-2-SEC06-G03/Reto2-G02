@@ -72,12 +72,32 @@ def compareMapMedio(keyname, artwork):
         return 1
     else:
         return -1
+def compareMapBeginDate(keyname, artist):
+    """
+    Compara dos nombres de autor. El primero es una cadena
+    y el segundo un entry de un map
+    """
+    authentry = me.getKey(artist)
+    if keyname == authentry:
+        return 0
+    elif keyname > authentry:
+        return 1
+    else:
+        return -1
+
 
 
 def compareTecnicas(tecnica1, tecnica2):
     if tecnica1 == tecnica2:
         return 0
     elif tecnica1 > tecnica2:
+        return 1
+    else:
+        return 0
+def comparenacimiento(nacimiento1, nacimiento2):
+    if nacimiento1 == nacimiento2:
+        return 0
+    elif nacimiento1 > nacimiento2:
         return 1
     else:
         return 0
@@ -118,6 +138,22 @@ def addTecnica(catalog, artwork):
     except Exception:
         return None
 
+def addBeginDate(catalog, artist):
+    try:
+        existeBeginDate = mp.contains(catalog['nacimiento'], artist['BeginDate'])
+        if existeBeginDate:
+            entry = mp.get(catalog['nacimiento'], artist['BeginDate'])
+            nacimiento = me.getValue(entry)
+        else:
+            nacimiento = nuevoNacimiento(artist['BeginDate'])
+            mp.put(catalog['nacimiento'], artist['BeginDate'], nacimiento)
+        lt.addLast(nacimiento['artista'], artist)
+    except Exception:
+        return None
+
+        
+
+
 
 
 
@@ -129,6 +165,15 @@ def nuevaTecnica(tecnica):
     entry = {'tecnica': "", "obra": None}
     entry['tecnica'] = tecnica
     entry['obras'] = lt.newList('SINGLE_LINKED', compareTecnicas)
+    return entry
+def nuevoNacimiento(nacimiento):
+    """
+    Esta funcion crea la estructura de obras asociados
+    a una tecnica.
+    """
+    entry = {'nacimiento': "", "artista": None}
+    entry['nacimiento'] = nacimiento
+    entry['artista'] = lt.newList('SINGLE_LINKED', comparenacimiento)
     return entry
 
 
@@ -368,7 +413,10 @@ def Obrasmasantiguas(catalog, tecnica):
     listalimpia = eliminarCampoVacio(listaOrdenada, "Date")
 
     return listalimpia
-    
+def cronologico_artistasmaps(catalog, nacimiento):
+    listaartistas=mp.get(catalog["nacimiento"], nacimiento)
+    listaordenadaartistas=ins.sort(me.getValue(listaartistas)["artista"], cmpArtistByBornDate)
+    return listaordenadaartistas
 
 # Funciones de ordenamiento
 
