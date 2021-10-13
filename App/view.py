@@ -1,5 +1,4 @@
-﻿"""
- * Copyright 2020, Departamento de sistemas y Computación, Universidad
+﻿"""Copyright 2020, Departamento de sistemas y Computación, Universidad
  * de Los Andes
  *
  *
@@ -26,6 +25,8 @@ import controller
 from DISClib.ADT import list as lt
 from DISClib.ADT import map as mp
 from prettytable import PrettyTable
+from time import process_time
+
 
 assert cf
 
@@ -48,7 +49,8 @@ def printMenu():
     print("7- Req. 5. Transportar obras de un departamento")
     print("8- Req. 6. Proponer una nueva exposición en el museo")
     print("9- (MAP) N obras mas antiguas por tecnica")
-    print("10- Salir del Menu")
+    print("10 - (MAP) Cantidad por nacionalidad")
+    print("11- Salir del Menu")
 
 
 def initCatalog(Tipo_Arreglo):
@@ -65,14 +67,14 @@ catalog = None
 def imprimirArtistasCrono(lista):
     listaImprimir = primerosYUltimos(lista)
 
-    #IMPRESION NORMAL
+    # IMPRESION NORMAL
     # print('Nombre ---', 'Año nacimiento ---', 'Año fallecimiento ----', 'Nacionalidad ----', 'Genero')
     # for i in range(1, lt.size(listaImprimir) + 1):
     #     print([lt.getElement(listaImprimir, i).get('DisplayName'), lt.getElement(listaImprimir, i).get('BeginDate'),
     #                lt.getElement(listaImprimir, i).get('EndDate'), lt.getElement(listaImprimir, i).get('Nationality'),
     #                lt.getElement(listaImprimir, i).get('Gender')])
 
-    #IMPRESION CON PRETTY TABLE
+    # IMPRESION CON PRETTY TABLE
     x = PrettyTable()
     x.field_names = ['Nombre', 'Año nacimiento', 'Año fallecimiento', 'Nacionalidad', 'Genero']
     for i in range(1, lt.size(listaImprimir) + 1):
@@ -178,14 +180,16 @@ def resp_req3():
     print("El total de la obras del artista " + nombre + " identificado con el ID " + idArtista + " es de: " + str(
         cantidadObras))
     print("El total de tecnicas utilizadas son de: " + str(cantidadTecnicas))
-    print("La tecnica mas utilizada es la de: " + tecnicaMayor + " y su cantidad de obras con esta tecnica es de: " + str(
-        cantidadTecnicaMayor))
+    print(
+        "La tecnica mas utilizada es la de: " + tecnicaMayor + " y su cantidad de obras con esta tecnica es de: " + str(
+            cantidadTecnicaMayor))
     imprimirObrasTecnica(listaDeObrasMayor)
 
 
 def resp_req5():
     departamento = input("Ingresa el departamento a consultar: ")
-    cantidadObras, listaOrdenada, peso, listaTransporteOrdenada, totalTransporte = controller.obrasDepartamento(departamento, catalog)
+    cantidadObras, listaOrdenada, peso, listaTransporteOrdenada, totalTransporte = controller.obrasDepartamento(
+        departamento, catalog)
     print("============ Respuesta Requerimiento 5 ============")
     print("Cantidad de obras a transportar: " + str(cantidadObras))
     print("Peso aproximado de las obras (kg): " + str(round(peso, 3)))
@@ -194,26 +198,38 @@ def resp_req5():
     imprimirObrasTransportar(ultimos5Lista(listaTransporteOrdenada))
     print("----- Obras mas antiguas ------")
     imprimirObrasTransportar(primeros5Lista(listaOrdenada))
-def resp_reqlab ():
-    n=int(input("ingrese la cantidad de obras a consultar:"))
-    tecnica=input("Ingrese el nombre de la tecnica:")
-    listalimpia=controller.Obrasmasantiguas(catalog,tecnica)
+
+
+def resp_reqlab():
+    Inicio = process_time()
+    n = int(input("ingrese la cantidad de obras a consultar:"))
+    tecnica = input("Ingrese el nombre de la tecnica:")
+    listalimpia = controller.Obrasmasantiguas(catalog, tecnica)
+    Final = process_time()
     print("============ Respuesta Requerimiento Lab ============")
-   
-    Cont= 0 
+    TiempoTotal = Final-Inicio
+    print("tarda:"+str(TiempoTotal)+"Mseg")
+
+
+    Cont = 0
     for artwork in lt.iterator(listalimpia):
-        if Cont<n:
+        if Cont < n:
             print(artwork)
-            Cont+=1
-def resp_req1_maps():
-    fecha_inicial = input("Ingresa el año inicial: ")
-    fecha_final = input("Ingresa el año final: ")
-    listaordenadaartistas = controller.cronologico_artistasmaps(catalog,nacimiento)
-    tam_lista = lt.size(listaordenadaartistas)
-    print("============ Respuesta Requerimiento 1 ============")
-    print("La cantidad de artistas nacidos entre " + fecha_inicial + " y " + fecha_final + " es de " + str(tam_lista))
-    print("Los primeros 3 y los ultimos 3 artistas en este rango son: ")
-    imprimirArtistasCrono(listaordenadaartistas)
+            Cont += 1
+
+
+def resp_reqlab2():
+    nacionalidad = input("Ingrese el nombre de la nacionalidad: ")
+    Inicio = process_time()
+    cantidad = controller.nacionalidad(catalog, nacionalidad)
+    Final = process_time()
+    print("============ Respuesta Requerimiento Lab 2 ============")
+    print("El total de obras con nacionalidad " + nacionalidad + " es  de: " + str(cantidad))
+    TiempoTotal = Final-Inicio
+    print("tarda:"+str(TiempoTotal)+"Mseg")
+    
+
+
 """
 Menu principal
 """
@@ -229,9 +245,15 @@ while True:
             tipo_Arreglo = "SINGLE_LINKED"
         print("Cargando información de los archivos ....")
         catalog = initCatalog(tipo_Arreglo)
+        Inicio = process_time()
         loadData(catalog)
+        Final = process_time()
+        TiempoTotal = Final-Inicio
+        print("tarda:"+str(TiempoTotal)+"Mseg")
 
-       
+
+        
+
         print('Artistas cargados: ' + str(lt.size(catalog['artist'])))
         print('Obras cargadas: ' + str(lt.size(catalog['artworks'])))
 
@@ -263,7 +285,12 @@ while True:
         print("Propuesta de una nueva exposición:  ")
 
     elif int(inputs) == 9:
-       resp_reqlab()
+        resp_reqlab()
+    elif int(inputs) == 10:
+        Inicio = process_time()
+        resp_reqlab2()
+        Final = process_time()
+        print(Final-Inicio)
+
     else:
         sys.exit(9)
-sys.exit(0)

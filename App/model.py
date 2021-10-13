@@ -24,7 +24,6 @@
  * Dario Correal - Version inicial
  """
 
-
 import cmath
 import config as cf
 import time
@@ -47,60 +46,37 @@ los mismos.
 # Construccion de modelos
 
 def newCatalog(Tipo_Arreglo):
+   
     catalog = {'artworks': lt.newList(Tipo_Arreglo),
                'tecnica': None,
-               'artist': lt.newList(Tipo_Arreglo)}
-
+               'artist': lt.newList(Tipo_Arreglo),
+               'idArtistas': None,
+               'nacionalidad': None}
+    
+    # 1 indice
     "Indice con tecnica/medio"
     catalog['tecnica'] = mp.newMap(20,
                                    maptype='CHAINING',
                                    loadfactor=4.0,
                                    comparefunction=compareMapMedio)
     
+
+
+                                    
+    # 2 indice
+    "Indice con id"
+    catalog['idArtistas'] = mp.newMap(10000,
+                                      maptype='CHAINING',
+                                      loadfactor=4.0,
+                                      comparefunction=compareMapMedio)
+
+    # 3 indice
+    catalog['nacionalidad'] = mp.newMap(50,
+                                        maptype='PROBING',
+                                        loadfactor=0.8,
+                                        comparefunction=compareMapMedio)
+
     return catalog
-
-
-def compareMapMedio(keyname, artwork):
-    """
-    Compara dos nombres de autor. El primero es una cadena
-    y el segundo un entry de un map
-    """
-    authentry = me.getKey(artwork)
-    if keyname == authentry:
-        return 0
-    elif keyname > authentry:
-        return 1
-    else:
-        return -1
-def compareMapBeginDate(keyname, artist):
-    """
-    Compara dos nombres de autor. El primero es una cadena
-    y el segundo un entry de un map
-    """
-    authentry = me.getKey(artist)
-    if keyname == authentry:
-        return 0
-    elif keyname > authentry:
-        return 1
-    else:
-        return -1
-
-
-
-def compareTecnicas(tecnica1, tecnica2):
-    if tecnica1 == tecnica2:
-        return 0
-    elif tecnica1 > tecnica2:
-        return 1
-    else:
-        return 0
-def comparenacimiento(nacimiento1, nacimiento2):
-    if nacimiento1 == nacimiento2:
-        return 0
-    elif nacimiento1 > nacimiento2:
-        return 1
-    else:
-        return 0
 
 
 # Funciones para agregar informacion al catalogo
@@ -110,9 +86,12 @@ def addArtist(catalog, artist):
                     artist['Gender'], artist['BeginDate'],
                     artist['EndDate'], artist['Wiki QID'], artist['ULAN'])
     lt.addLast(catalog['artist'], art)
+    addIdArtist(catalog, art)
+    
 
 
 def addArtworks(catalog, artworks):
+    StartTime=time.process_time()
     artwork = newArtwork(artworks['ObjectID'], artworks['Title'], artworks['ConstituentID'],
                          artworks['Date'], artworks['Medium'], artworks['Dimensions'],
                          artworks['CreditLine'], artworks['AccessionNumber'], artworks['Classification'],
@@ -123,6 +102,18 @@ def addArtworks(catalog, artworks):
                          artworks['Duration (sec.)'])
     lt.addLast(catalog['artworks'], artwork)
     addTecnica(catalog, artwork)
+    
+    # Se agregan obras por cada nacionalidad de todos los artistas involucrados
+    # Se obtiene la lista de ids de los artistas de la obra
+    listaIds = artwork['ConstituentID'].replace(" ", "").replace("[", "").replace("]", "")
+
+    # Se revisa individualmente
+    for artistId in listaIds.split(','):
+        # Haciendo uso del indice de los artistas se busca al artista por su id
+        entry = mp.get(catalog['idArtistas'], artistId)
+        artista = me.getValue(entry)
+        # Una vez obtenido se agrega a esa nacionalidad esa obra
+        addArtworkNacionality(catalog, artista['Nationality'], artwork)
 
 
 def addTecnica(catalog, artwork):
@@ -138,23 +129,52 @@ def addTecnica(catalog, artwork):
     except Exception:
         return None
 
-def addBeginDate(catalog, artist):
-    try:
-        existeBeginDate = mp.contains(catalog['nacimiento'], artist['BeginDate'])
-        if existeBeginDate:
-            entry = mp.get(catalog['nacimiento'], artist['BeginDate'])
-            nacimiento = me.getValue(entry)
-        else:
-            nacimiento = nuevoNacimiento(artist['BeginDate'])
-            mp.put(catalog['nacimiento'], artist['BeginDate'], nacimiento)
-        lt.addLast(nacimiento['artista'], artist)
-    except Exception:
-        return None
 
+def addIdArtist(catalog, artist):
+    artistas = catalog['idArtistas']
+    existId = mp.contains(artistas, artist['ConstituentID'])
+    if not existId:
+        mp.put(artistas, artist['ConstituentID'], artist)
+
+
+def addArtworkNacionality(catalog, nacionalidad, artwork):
+    nacionalidades = catalog['nacionalidad']
+    existnacionality = mp.contains(nacionalidades, nacionalidad)
+    if existnacionality:
+        entry = mp.get(nacionalidades, nacionalidad)
+        entrynacionality = me.getValue(entry)
+    else:
+        entrynacionality = newNacionality(nacionalidad)
+        mp.put(nacionalidades, nacionalidad, entrynacionality)
+    lt.addLast(entrynacionality['Artworks'], artwork)
+
+
+def Cantidadnacionalidad(catalog, nacionalidad):
+    nacionalidades = catalog['nacionalidad']
+    existnacionality = mp.contains(nacionalidades, nacionalidad)
+    if existnacionality:
+        entry = mp.get(nacionalidades, nacionalidad)
+        entrynacionality = me.getValue(entry)
+        totnacionalidad = lt.size(entrynacionality['Artworks'])
         
+        return totnacionalidad
+    return 0 
+    
+    
 
 
-
+def newNacionality(name):
+    """
+    Crea una nueva estructura para modelar las obras  de un artista
+    de acuerdo a su Nacionalidad. Se crea una lista para guardar las
+    obras de dicho artista.
+    """
+    nacionalidad = {'name': "",
+                    "Artworks": None,
+                    }
+    nacionalidad['name'] = name
+    nacionalidad['Artworks'] = lt.newList('SINGLE_LINKED', compareArtworksIds)
+    return nacionalidad
 
 
 def nuevaTecnica(tecnica):
@@ -162,34 +182,29 @@ def nuevaTecnica(tecnica):
     Esta funcion crea la estructura de obras asociados
     a una tecnica.
     """
-    entry = {'tecnica': "", "obra": None}
+    entry = {'tecnica': "", 'obras': None}
     entry['tecnica'] = tecnica
     entry['obras'] = lt.newList('SINGLE_LINKED', compareTecnicas)
-    return entry
-def nuevoNacimiento(nacimiento):
-    """
-    Esta funcion crea la estructura de obras asociados
-    a una tecnica.
-    """
-    entry = {'nacimiento': "", "artista": None}
-    entry['nacimiento'] = nacimiento
-    entry['artista'] = lt.newList('SINGLE_LINKED', comparenacimiento)
     return entry
 
 
 # Funciones para creacion de datos
 
-def newArtist(ConstituentID, DisplayName, ArtistBio, Nationality, Gender, BeginDate, EndDate, WikiQID, ULAN):
+def newArtist(ConstituentID, DisplayName, ArtistBio, Nationality, Gender, BeginDate, EndDate, WikiQID, ULAN): 
     artist = {'ConstituentID': ConstituentID, 'DisplayName': DisplayName, 'ArtistBio': ArtistBio, 'Nacionality': '',
               'Gender': Gender, 'BeginDate': BeginDate, 'EndDate': EndDate, 'WikiQID': WikiQID, 'ULAN': ULAN,
               'Nationality': Nationality}
-
     return artist
+    
+
 
 
 def newArtwork(ObjectID, Title, ConstituentID, Date, Medium, Dimensions, CreditLine, AccessionNumber, Classification,
                Department, DateAcquired, Cataloged, URL, Circumference, Depth, Diameter, Height, Length, Weight, Width,
                SeatHeight, Duration):
+    
+
+               
     artwork = {'ObjectID': ObjectID, 'Title': Title, 'ConstituentID': ConstituentID, 'Date': Date, 'Medium': Medium,
                'Dimensions': Dimensions, 'CreditLine': CreditLine, 'AccessionNumber': AccessionNumber,
                'Classification': Classification, 'Department': Department, 'DateAcquired': DateAcquired,
@@ -197,12 +212,43 @@ def newArtwork(ObjectID, Title, ConstituentID, Date, Medium, Dimensions, CreditL
                'Diameter': Diameter, 'Height': Height, 'Length': Length, 'Weight': Weight, 'Width': Width,
                'SeatHeight': SeatHeight, 'Duration': Duration}
 
+    
     return artwork
 
 
 # Funciones de consulta
 
+def compareMapMedio(keyname, artwork):
+    authentry = me.getKey(artwork)
+    if keyname == authentry:
+        return 0
+    elif keyname > authentry:
+        return 1
+    else:
+        return -1
+
+
+def compareTecnicas(tecnica1, tecnica2):
+    if tecnica1 == tecnica2:
+        return 0
+    elif tecnica1 > tecnica2:
+        return 1
+    else:
+        return 0
+
 # Funciones utilizadas para comparar elementos dentro de una lista
+def compareArtworksIds(id1, id2):
+    """
+    Compara dos ids de dos obras
+    """
+    if (id1 == id2):
+        return 0
+    elif id1 > id2:
+        return 1
+    else:
+        return -1
+
+
 def cmpArtworkByDateAcquired(artwork1, artwork2):
     if artwork1["DateAcquired"] < artwork2["DateAcquired"]:
         r = True
@@ -407,16 +453,15 @@ def totalObras(nombreArtista, catalog):
     # El nombre de la tecnica mas usada, la cantidad de veces que esta se uso y la lista de obras donde se aplico
     tecnicaMayor, contMayor, listaObrasMayor = tecnicaMayorCantidad(listaTecnicas, listaObras)
     return lt.size(listaObras), lt.size(listaTecnicas), idArtista, tecnicaMayor, contMayor, listaObrasMayor
+
+
 def Obrasmasantiguas(catalog, tecnica):
     listaObrasTecnica = mp.get(catalog["tecnica"], tecnica)
     listaOrdenada = ins.sort(me.getValue(listaObrasTecnica)['obras'], cmpArtworkByDate)
     listalimpia = eliminarCampoVacio(listaOrdenada, "Date")
 
     return listalimpia
-def cronologico_artistasmaps(catalog, nacimiento):
-    listaartistas=mp.get(catalog["nacimiento"], nacimiento)
-    listaordenadaartistas=ins.sort(me.getValue(listaartistas)["artista"], cmpArtistByBornDate)
-    return listaordenadaartistas
+
 
 # Funciones de ordenamiento
 
