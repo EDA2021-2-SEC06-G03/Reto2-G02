@@ -63,6 +63,9 @@ def loadData(catalog):
 
 catalog = None
 
+def imprimirNacionalidades(lista):
+    listaImprimir = primerosYUltimos(lista)
+
 
 def imprimirArtistasCrono(lista):
     listaImprimir = primerosYUltimos(lista)
@@ -94,6 +97,16 @@ def imprimirObrasCrono(lista):
                    lt.getElement(listaImprimir, i).get('Dimensions')])
     print(x)
 
+def imprimirNacionalidadesasdfdf(lista):
+    listaImprimir = primerosYUltimos(lista)
+    x = PrettyTable()
+    x.field_names = ['Titulo', 'Artista(s)', 'Fecha', 'Medio', 'Dimensiones']
+    for i in range(1, lt.size(listaImprimir) + 1):
+        x.add_row([lt.getElement(listaImprimir, i).get('Title'), lt.getElement(listaImprimir, i).get('Artist'),
+                   lt.getElement(listaImprimir, i).get('Date'), lt.getElement(listaImprimir, i).get('Medium'),
+                   lt.getElement(listaImprimir, i).get('Dimensions')])
+    print(x)
+
 
 def imprimirObrasTecnica(lista):
     x = PrettyTable()
@@ -114,6 +127,15 @@ def imprimirObrasTransportar(lista):
                    lt.getElement(lista, i).get('Medium'), lt.getElement(lista, i).get('Dimensions'),
                    lt.getElement(lista, i).get('Transport')])
     print(x)
+
+def imprimirNacionalidades(lista):
+    x = PrettyTable()
+    x.field_names = ['Nacionalidad','obras']
+
+    for i in range(1, lt.size(lista) + 1):
+        x.add_row([lt.getElement(lista, i).get('Nationality'), lt.getElement(lista, i).get('ArtWorks')])
+    print(x)
+
 
 
 def primeros5Lista(lista):
@@ -147,6 +169,19 @@ def primerosYUltimos(lista):
     lt.addLast(listaImprimir, lt.getElement(lista, tam_lista))
     return listaImprimir
 
+def primeros10(lista):
+    lista10primeros = lt.newList()
+    lt.addLast(lista10primeros, lt.getElement(lista, 1))
+    lt.addLast(lista10primeros, lt.getElement(lista, 2))
+    lt.addLast(lista10primeros, lt.getElement(lista, 3))
+    lt.addLast(lista10primeros, lt.getElement(lista, 4))
+    lt.addLast(lista10primeros, lt.getElement(lista, 5))
+    lt.addLast(lista10primeros, lt.getElement(lista, 6))
+    lt.addLast(lista10primeros, lt.getElement(lista, 7))
+    lt.addLast(lista10primeros, lt.getElement(lista, 8))
+    lt.addLast(lista10primeros, lt.getElement(lista, 9))
+    lt.addLast(lista10primeros, lt.getElement(lista, 10))
+    return lista10primeros
 
 def resp_req1():
     fecha_inicial = input("Ingresa el año inicial: ")
@@ -184,6 +219,10 @@ def resp_req3():
         "La tecnica mas utilizada es la de: " + tecnicaMayor + " y su cantidad de obras con esta tecnica es de: " + str(
             cantidadTecnicaMayor))
     imprimirObrasTecnica(listaDeObrasMayor)
+
+def resp_req4():
+    lista_nacionalidades = controller.nacionalidadyobras(catalog)
+    imprimirNacionalidades(lista_nacionalidades)
 
 
 def resp_req5():
@@ -273,7 +312,7 @@ while True:
         resp_req3()
 
     elif int(inputs) == 6:
-        print("Obras por la nacionalidad de sus creadores: ")
+        resp_req4()
 
     elif int(inputs) == 7:
         resp_req5()

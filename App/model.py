@@ -27,6 +27,7 @@
 import cmath
 import config as cf
 import time
+from DISClib.ADT import orderedmap as om
 from DISClib.ADT import list as lt
 from DISClib.ADT import map as mp
 from DISClib.DataStructures import mapentry as me
@@ -53,6 +54,7 @@ def newCatalog(Tipo_Arreglo):
                'idArtistas': None,
                'nacionalidad': None}
     
+    
     # 1 indice
     "Indice con tecnica/medio"
     catalog['tecnica'] = mp.newMap(20,
@@ -76,7 +78,14 @@ def newCatalog(Tipo_Arreglo):
                                         loadfactor=0.8,
                                         comparefunction=compareMapMedio)
 
+    catalog['FechasCrono'] = om.newMap(omaptype='BST',
+                                    comparefunction=comparefechas)
+
     return catalog
+
+            
+
+
 
 
 # Funciones para agregar informacion al catalogo
@@ -160,7 +169,6 @@ def Cantidadnacionalidad(catalog, nacionalidad):
         return totnacionalidad
     return 0 
     
-    
 
 
 def newNacionality(name):
@@ -186,6 +194,7 @@ def nuevaTecnica(tecnica):
     entry['tecnica'] = tecnica
     entry['obras'] = lt.newList('SINGLE_LINKED', compareTecnicas)
     return entry
+
 
 
 # Funciones para creacion de datos
@@ -217,6 +226,17 @@ def newArtwork(ObjectID, Title, ConstituentID, Date, Medium, Dimensions, CreditL
 
 
 # Funciones de consulta
+
+def comparefechas(fecha1, fecha2):
+    """
+    Compara dos fechas
+    """
+    if (fecha1 == fecha2):
+        return 0
+    elif (fecha1 > fecha2):
+        return 1
+    else:
+        return -1
 
 def compareMapMedio(keyname, artwork):
     authentry = me.getKey(artwork)
@@ -313,6 +333,12 @@ def cronologicoObras(fecha_inicial, fecha_final, catalog):
 
     return lista_final, cont
 
+def getTreeCronoArtistas(catalog, initialDate, finalDate):
+    Obra = om.get(catalog['FechasCrono'], initialDate, finalDate)
+    totObras = 0
+    for lstdate in lt.iterator(lst):
+        totcrimes += lt.size(lstdate['lstcrimes'])
+    return totObras
 
 # Funciones de artistas y obras
 def obtenerIdArtista(nombreArtista, catalog):
@@ -330,12 +356,18 @@ def obtenerNombresArtistas(artwork, catalog):
                 nombresArtistas += artist['DisplayName'] + "\n"
     return nombresArtistas
 
+def nacionalidadyobras(catalog):
+    nat = mp.keySet(catalog["nacionalidad"])
+    return nat 
 
 def tecnicaMayorCantidad(listaTecnicas, listaObras):
     tecnicaMayor = ""
     contMayor = 0
     listaObrasMayor = lt.newList()
 
+
+    
+    
     # Buscando la tecnica que mas se usó
     for i in range(1, lt.size(listaTecnicas) + 1):
         cont = 0

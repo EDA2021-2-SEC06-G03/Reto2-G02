@@ -86,6 +86,9 @@ def  Obrasmasantiguas(catalog,tecnica):
 def nacionalidad(catalog, nacionalidad):
     return model.Cantidadnacionalidad(catalog, nacionalidad)
 
+def nacionalidadyobras(catalog):
+    return model.nacionalidadyobras(catalog)
+
 # Funciones listar cronologicamente
 def listarCronoArtistas(fecha_inicial, fecha_final, catalog):
     return model.cronologicoArtistas(fecha_inicial, fecha_final, catalog)
