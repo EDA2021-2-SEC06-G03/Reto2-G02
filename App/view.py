@@ -19,6 +19,7 @@
  * along withthis program.  If not, see <http://www.gnu.org/licenses/>.
  """
 
+
 import config as cf
 import sys
 import controller
@@ -97,14 +98,17 @@ def imprimirObrasCrono(lista):
                    lt.getElement(listaImprimir, i).get('Dimensions')])
     print(x)
 
-def imprimirNacionalidadesasdfdf(lista):
+def imprimir3Nacionalidades(lista):
     listaImprimir = primerosYUltimos(lista)
     x = PrettyTable()
     x.field_names = ['Titulo', 'Artista(s)', 'Fecha', 'Medio', 'Dimensiones']
     for i in range(1, lt.size(listaImprimir) + 1):
-        x.add_row([lt.getElement(listaImprimir, i).get('Title'), lt.getElement(listaImprimir, i).get('Artist'),
-                   lt.getElement(listaImprimir, i).get('Date'), lt.getElement(listaImprimir, i).get('Medium'),
-                   lt.getElement(listaImprimir, i).get('Dimensions')])
+        x.add_row([lt.getElement(listaImprimir, i)["Title"], 
+        lt.getElement(listaImprimir, i)["Artist"],
+        lt.getElement(listaImprimir, i)["Date"],
+        lt.getElement(listaImprimir, i)["Medium"],
+        lt.getElement(listaImprimir, i)["Dimensions"]])
+                   
     print(x)
 
 
@@ -129,11 +133,12 @@ def imprimirObrasTransportar(lista):
     print(x)
 
 def imprimirNacionalidades(lista):
+    lista=primeros10(lista)
     x = PrettyTable()
     x.field_names = ['Nacionalidad','obras']
 
     for i in range(1, lt.size(lista) + 1):
-        x.add_row([lt.getElement(lista, i).get('Nationality'), lt.getElement(lista, i).get('ArtWorks')])
+        x.add_row([lt.getElement(lista, i).get('name'),lt.size(lt.getElement(lista, i).get('Artworks'))])
     print(x)
 
 
@@ -186,13 +191,13 @@ def primeros10(lista):
 def resp_req1():
     fecha_inicial = input("Ingresa el año inicial: ")
     fecha_final = input("Ingresa el año final: ")
-    lista_artistas, tiempo = controller.listarCronoArtistas(fecha_inicial, fecha_final, catalog)
+    lista_artistas = controller.listarCronoArtistas(fecha_inicial, fecha_final, catalog)
     tam_lista = lt.size(lista_artistas)
     print("============ Respuesta Requerimiento 1 ============")
-    print("Tiempo procesamiento: " + str(round(tiempo, 2)) + " milseg")
     print("La cantidad de artistas nacidos entre " + fecha_inicial + " y " + fecha_final + " es de " + str(tam_lista))
     print("Los primeros 3 y los ultimos 3 artistas en este rango son: ")
     imprimirArtistasCrono(lista_artistas)
+    
 
 
 def resp_req2():
@@ -202,27 +207,35 @@ def resp_req2():
     tam_lista = lt.size(lista_obras)
     print("============ Respuesta Requerimiento 2 ============")
     print("Obras adquiridas entre " + fecha_inicial + " y " + fecha_final + " es de " + str(tam_lista))
-    print("La cantidad de obras adquiridas mediante compras es de " + str(cont))
+    #print("La cantidad de obras adquiridas mediante compras es de " + str(cont))
     print("Las primeras 3 y los ultimas 3 obras en este rango son: ")
     imprimirObrasCrono(lista_obras)
 
-
 def resp_req3():
-    nombre = input("Ingresa el nombre del artista: ")
-    cantidadObras, cantidadTecnicas, idArtista, tecnicaMayor, cantidadTecnicaMayor, listaDeObrasMayor = controller.totalObras(
-        nombre, catalog)
+    """nombre = input("Ingresa el nombre del artista: ")
+    listaDeObrasMayor=controller.tecnica(catalog)
+    cantidadObras=controller.obras(catalog,id)
     print("============ Respuesta Requerimiento 3 ============")
-    print("El total de la obras del artista " + nombre + " identificado con el ID " + idArtista + " es de: " + str(
+    print("El total de la obras del artista " + nombre + " identificado con el ID "  " es de: " + str(
         cantidadObras))
-    print("El total de tecnicas utilizadas son de: " + str(cantidadTecnicas))
-    print(
-        "La tecnica mas utilizada es la de: " + tecnicaMayor + " y su cantidad de obras con esta tecnica es de: " + str(
+    print("El total de tecnicas utilizadas son de: " + lt.size(listaObrasMayor) )
+    print("La tecnica mas utilizada es la de: " + tecnicaMayor + " y su cantidad de obras con esta tecnica es de: " + str(
             cantidadTecnicaMayor))
-    imprimirObrasTecnica(listaDeObrasMayor)
+    imprimirObrasTecnica(listaDeObrasMayor)"""
+    cantidadObras=controller.obras(catalog,id)
+    print(cantidadObras)
+
+    
 
 def resp_req4():
     lista_nacionalidades = controller.nacionalidadyobras(catalog)
+    print("El top 10  de nacionalidades en el MOMA es:")
     imprimirNacionalidades(lista_nacionalidades)
+    listaUnica=controller.listaUnica(lt.getElement(lista_nacionalidades,1)["Artworks"])
+    print("La nacionalidad Top en el museo es ",lt.getElement(lista_nacionalidades,1)["name"],"con una cantidad de: ",lt.size(listaUnica))
+    print("Las primeras y ultimas tres obras de la lista de arte son:")
+    imprimir3Nacionalidades(listaUnica)
+    
 
 
 def resp_req5():
