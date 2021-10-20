@@ -25,7 +25,7 @@
  """
 
 import cmath
-from App.controller import nacionalidad
+from App.controller import nacionalidad, obras, tecnica
 from DISClib.DataStructures.singlelinkedlist import lastElement
 import config as cf
 import time
@@ -90,7 +90,7 @@ def newCatalog(Tipo_Arreglo):
                                         maptype='CHAINING',
                                         loadfactor=4.0,
                                         comparefunction= compareMapMedio)
-    catalog['ObrasID']=mp.newMap(50,
+    catalog['IDobras']=mp.newMap(50,
                                         maptype='CHAINING',
                                         loadfactor=4.0,
                                         comparefunction= compareMapMedio)
@@ -129,10 +129,12 @@ def addArtworks(catalog, artworks):
                          artworks['Diameter (cm)'], artworks['Height (cm)'], artworks['Length (cm)'],
                          artworks['Weight (kg)'], artworks['Width (cm)'], artworks['Seat Height (cm)'],
                          artworks['Duration (sec.)'])
-
+    
     lt.addLast(catalog['artworks'], artwork)
+    addIDOBRAS(catalog, artwork)
     addTecnica(catalog, artwork)
     addFechasObras(catalog,artworks['DateAcquired'],artwork)
+    
     
     # Se agregan obras por cada nacionalidad de todos los artistas involucrados
     # Se obtiene la lista de ids de los artistas de la obra
@@ -145,9 +147,15 @@ def addArtworks(catalog, artworks):
         artista = me.getValue(entry)
         # Una vez obtenido se agrega a esa nacionalidad esa obra
         addArtworkNacionality(catalog, artista['Nationality'], artwork)
-        artistas=artistas + artista["DisplayName"] + "\n"
+        addIDOBRAS(catalog,artistId,artwork)
+        artistas=artistas + artista["DisplayName"] + ", "
     artwork["Artist"]=artistas
-   
+
+
+    
+    
+    
+    
 
 def addTecnica(catalog, artwork):
     try:
@@ -168,7 +176,16 @@ def addIdArtist(catalog, artist):
     existId = mp.contains(artistas, artist['ConstituentID'])
     if not existId:
         mp.put(artistas, artist['ConstituentID'], artist)
-
+def addIDOBRAS(catalog,id, artwork):
+    obras = catalog['IDobras']
+    exist= mp.contains(obras, id)
+    if exist:
+        entry = mp.get(obras, id)
+        obra = me.getValue(entry)
+    else:
+        obra = newIDObras(id)
+        mp.put(obras, id, obra)
+    lt.addLast(obra['Artworks'], artwork)
 
 def addArtworkNacionality(catalog, nacionalidad, artwork):
     if nacionalidad=="" or nacionalidad=="Nationality unknown" :
@@ -213,9 +230,11 @@ def addFechasObras(catalog,fecha,artwork):
         entry = mp.get(fechasobras, fecha)
         entryfechaobra = me.getValue(entry)
     else:
-        entryfechaobra = newFecha(fecha)
+        entryfechaobra = newFechaObras(fecha)
         mp.put(fechasobras, fecha, entryfechaobra)
     lt.addLast(entryfechaobra['Artworks'], artwork)
+
+
 
 
 
@@ -252,7 +271,7 @@ def newFecha(date):
     fecha['Artists'] = lt.newList('SINGLE_LINKED',comparefechas )
     return fecha
 
-def newFecha(date):
+def newFechaObras(date):
    
   
     fecha = {'date': "",
@@ -261,6 +280,14 @@ def newFecha(date):
     fecha['Date'] = date
     fecha['Artworks'] = lt.newList('SINGLE_LINKED',comparefechas )
     return fecha
+def newIDObras(id):
+    idobras = {'id': "",
+    "Artwork": None}
+    idobras['id'] = id
+    idobras['Artworks'] = lt.newList('SINGLE_LINKED',comparefechas )
+    return idobras
+
+
 
 
 
@@ -304,6 +331,7 @@ def comparefechas(fecha1, fecha2):
         return 1
     else:
         return -1
+
 
 def compareMapMedio(keyname, artwork):
     authentry = me.getKey(artwork)
@@ -400,26 +428,33 @@ def cronologicoArtistas(fecha_inicial, fecha_final, catalog):
 
 def cronologicoObras(fecha_inicial, fecha_final, catalog):
     lista_artworks = lt.newList()
-    
-    fechas=catalog["fechas"]
-    for fecha in range(int(fecha_inicial),int(fecha_final)+1):
-        fecha=str(fecha)
-        existfecha = mp.contains(fechas, fecha)
-        if existfecha:
-            entry=mp.get(fechas,fecha)
-            entryfecha=me.getValue(entry)
-            for i in range(1, lt.size(entryfecha["Artworks"]) + 1):
-                lt.addLast(lista_artworks,lt.getElement(entryfecha["Artworks"],i))
-    
-    
-            
-            """if 'Purchase' in artwork['CreditLine'] or 'purchase' in artwork['CreditLine']:
-                cont += 1"""
+    lista_fechas=mp.keySet(catalog["fechasObras"])
+    cont = 0
+    fechasobras=catalog["fechasObras"]
+    for fechaOBRAS in lt.iterator(lista_fechas):
+        if  fecha_final >= fechaOBRAS >= fecha_inicial:
+            entry=mp.get(fechasobras,fechaOBRAS)
+            entryfechaobras=me.getValue(entry)
+            for artwork in lt.iterator(entryfechaobras["Artworks"]):
+                lt.addLast(lista_artworks,artwork)
+                if 'Purchase' in artwork['CreditLine'] or 'purchase' in artwork['CreditLine']:
+                    cont += 1
+    lista_artworks=ins.sort(lista_artworks,cmpArtworkByDateAcquired)
 
-    return lista_artworks 
+    return lista_artworks,cont
+
 
     
 
+    
+def CantidadObras(catalog, id):
+    ids = catalog['IDobras']
+    existid = mp.contains(ids, id)
+    if existid:
+        entry = mp.get(ids, id)
+        entryid = me.getValue(entry)
+        totobras= lt.size(entryid['Artworks'])
+        return totobras
 # Funciones de artistas y obras
 def obtenerIdArtista(nombreArtista, catalog):
     for artist in catalog['artist']['elements']:
@@ -457,14 +492,49 @@ def tecnicaMayorCantidad(catalog):
     listaObrasMayor=ins.sort(listaObrasMayor,cmptecnicas)
     return  listaObrasMayor
 
-def CantidadObras(catalog, id):
-    ids = catalog['idArtistas']
-    existid = mp.contains(ids, id)
-    if existid:
-        entry = mp.get(ids, id)
-        entryid = me.getValue(entry)
-        totobras= lt.size(entryid['Artworks'])
-        return totobras
+def tecnicasPorArtitas(catalog,name ):
+    lista_tecnicas=lt.newList()
+    lista_tecnicamayor=lt.newList()
+    id=obtenerIdArtista(name) 
+    entry=mp.get(catalog["IDobras"],id)
+    IDobra=me.getValue(entry)
+    obrasArtista=IDobra["Artworks"]
+    contmayor=0
+    tecnicaMayor=""
+    for obra in lt.iterator(obrasArtista):
+        tecnicaObra=obra["Medium"]
+        exist=False
+        for tecnica in lt.iterator(lista_tecnicas):
+            if tecnicaObra==tecnica:
+                exist=True
+        if not exist:
+            lt.addLast(lista_tecnicas,tecnicaObra)
+
+    for tecnica in lt.iterator(lista_tecnicas):
+        cont=0
+        for obra in lt.iterator(obrasArtista):
+            if tecnica ==obra["Medium"]:
+                cont+=1
+        if cont>contmayor:
+            contmayor=cont
+            tecnicaMayor=tecnica
+    for obra in lt.iterator(obrasArtista):
+        if obra["Medium"]==tecnicaMayor:
+            lt.addLast(lista_tecnicamayor,obra)
+       
+    
+    
+    tot_obras=lt.size(obrasArtista)
+    tot_tecnica=lt.size(lista_tecnicas)
+    return tot_obras,tot_tecnica,tecnicaMayor,lista_tecnicamayor
+
+
+
+
+
+
+
+
      
     
     

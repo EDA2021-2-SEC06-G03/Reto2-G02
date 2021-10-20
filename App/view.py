@@ -89,14 +89,16 @@ def imprimirArtistasCrono(lista):
 
 
 def imprimirObrasCrono(lista):
-    listaImprimir = primerosYUltimos(lista)
-    x = PrettyTable()
-    x.field_names = ['Titulo', 'Artista(s)', 'Fecha', 'Medio', 'Dimensiones']
-    for i in range(1, lt.size(listaImprimir) + 1):
-        x.add_row([lt.getElement(listaImprimir, i).get('Title'), lt.getElement(listaImprimir, i).get('Artist'),
-                   lt.getElement(listaImprimir, i).get('Date'), lt.getElement(listaImprimir, i).get('Medium'),
-                   lt.getElement(listaImprimir, i).get('Dimensions')])
-    print(x)
+    if lt.size(lista)>=6:   
+        lista = primerosYUltimos(lista)
+    for obra in lt.iterator(lista):
+        print()
+        print('Titulo: ',obra["Title"])
+        print('Artista(s): ',obra['Artist'])
+        print('Fecha  Adquisicion: ' ,obra['DateAcquired'])
+        print('Medio: '  ,obra['Medium'])
+        print('Dimensiones : '  ,obra['Dimensions'])
+    print()
 
 def imprimir3Nacionalidades(lista):
     listaImprimir = primerosYUltimos(lista)
