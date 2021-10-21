@@ -73,14 +73,14 @@ def subList(lst, pos, numelem):
         error.reraise(exp, 'List->subList: ')
 
 
-def obrasDepartamento(nombreDepartamento, catalog):
-    return model.obrasDepartamento(nombreDepartamento, catalog)
+def obrasDepartamento(departamento, catalog):
+    return model.req5(catalog,departamento)
 
 
 def totalObras(nombreArtista, catalog):
     return model.totalObras(nombreArtista, catalog)
-def tecnica(catalog):
-    return model.tecnicaMayorCantidad(catalog)
+def tecnica(catalog,name):
+    return model.tecnicasPorArtitas(catalog,name )
 
 def  Obrasmasantiguas(catalog,tecnica):
     return model.Obrasmasantiguas(catalog,tecnica)

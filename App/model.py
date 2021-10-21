@@ -26,6 +26,7 @@
 
 import cmath
 from App.controller import nacionalidad, obras, tecnica
+from DISClib.DataStructures.chaininghashtable import keySet
 from DISClib.DataStructures.singlelinkedlist import lastElement
 import config as cf
 import time
@@ -94,6 +95,10 @@ def newCatalog(Tipo_Arreglo):
                                         maptype='CHAINING',
                                         loadfactor=4.0,
                                         comparefunction= compareMapMedio)
+    catalog['Departamento']=mp.newMap(50,
+                                        maptype='CHAINING',
+                                        loadfactor=4.0,
+                                        comparefunction= compareMapMedio)
     
 
     
@@ -131,9 +136,10 @@ def addArtworks(catalog, artworks):
                          artworks['Duration (sec.)'])
     
     lt.addLast(catalog['artworks'], artwork)
-    addIDOBRAS(catalog, artwork)
+    addIDOBRAS(catalog,artworks['ConstituentID'], artwork)
     addTecnica(catalog, artwork)
     addFechasObras(catalog,artworks['DateAcquired'],artwork)
+    adddepartamento(catalog,artwork)
     
     
     # Se agregan obras por cada nacionalidad de todos los artistas involucrados
@@ -234,6 +240,19 @@ def addFechasObras(catalog,fecha,artwork):
         mp.put(fechasobras, fecha, entryfechaobra)
     lt.addLast(entryfechaobra['Artworks'], artwork)
 
+def adddepartamento(catalog,artwork):
+    departamentos = catalog['Departamento']
+    exist= mp.contains(departamentos, artwork['Department'])
+    if exist:
+        entry = mp.get(catalog['Departamento'], artwork['Department'])
+        departamentoS= me.getValue(entry)
+        lt.addLast(departamentoS,artwork)
+        mp.put(catalog['Departamento'],artwork['Department'],departamentoS)
+    else:
+        lista_Obras=lt.newList()
+        lt.addLast(lista_Obras,artwork)
+        mp.put(catalog['Departamento'], artwork['Department'], lista_Obras)
+ 
 
 
 
@@ -394,8 +413,8 @@ def cmpArtworkByDate(artwork1, artwork2):
     return r
 
 
-def cmpArtworkByTransport(artwork1, artwork2):
-    if artwork1["Transport"] < artwork2["Transport"]:
+def cmpArtworkByTransport(obra1, obra2):
+    if obra1["Transport"] < obra2["Transport"]:
         r = True
     else:
         r = False
@@ -443,18 +462,6 @@ def cronologicoObras(fecha_inicial, fecha_final, catalog):
 
     return lista_artworks,cont
 
-
-    
-
-    
-def CantidadObras(catalog, id):
-    ids = catalog['IDobras']
-    existid = mp.contains(ids, id)
-    if existid:
-        entry = mp.get(ids, id)
-        entryid = me.getValue(entry)
-        totobras= lt.size(entryid['Artworks'])
-        return totobras
 # Funciones de artistas y obras
 def obtenerIdArtista(nombreArtista, catalog):
     for artist in catalog['artist']['elements']:
@@ -462,14 +469,7 @@ def obtenerIdArtista(nombreArtista, catalog):
             return artist['ConstituentID']
 
 
-def obtenerNombresArtistas(artwork, catalog):
-    limpio = artwork['ConstituentID'].replace(" ", "").replace("[", "").replace("]", "")
-    nombresArtistas = ""
-    for artistId in limpio.split(','):
-        for artist in catalog['artist']['elements']:
-            if artistId == artist['ConstituentID']:
-                nombresArtistas += artist['DisplayName'] + "\n"
-    return nombresArtistas
+
 
 def nacionalidadyobras(catalog):
     listanacionalidades=lt.newList()
@@ -479,23 +479,16 @@ def nacionalidadyobras(catalog):
         Nacionalidad=me.getValue(entry)
         lt.addLast(listanacionalidades,Nacionalidad)
     listanacionalidades=ins.sort(listanacionalidades,cmpNacionalidades)
+    return listanacionalidades
 
     #listaOrdenada = ins.sort(me.getValue(listaArtistas)[''], cmpArtworkByDate)
 
-def tecnicaMayorCantidad(catalog):
-    listaObrasMayor = lt.newList()
-    listallaves = mp.keySet(catalog["tecnica"])
-    for i in range(1, lt.size(listallaves) + 1):
-        entry=mp.get(catalog["tecnica"],lt.getElement(listallaves,i))
-        Tecnica=me.getValue(entry)
-        lt.addLast(listaObrasMayor,Tecnica)
-    listaObrasMayor=ins.sort(listaObrasMayor,cmptecnicas)
-    return  listaObrasMayor
+
 
 def tecnicasPorArtitas(catalog,name ):
     lista_tecnicas=lt.newList()
     lista_tecnicamayor=lt.newList()
-    id=obtenerIdArtista(name) 
+    id=obtenerIdArtista(name,catalog) 
     entry=mp.get(catalog["IDobras"],id)
     IDobra=me.getValue(entry)
     obrasArtista=IDobra["Artworks"]
@@ -526,7 +519,7 @@ def tecnicasPorArtitas(catalog,name ):
     
     tot_obras=lt.size(obrasArtista)
     tot_tecnica=lt.size(lista_tecnicas)
-    return tot_obras,tot_tecnica,tecnicaMayor,lista_tecnicamayor
+    return tot_obras,tot_tecnica,tecnicaMayor,lista_tecnicamayor,id
 
 
 
@@ -593,7 +586,7 @@ def totalTransporte(lista):
     return total
 
 
-def obrasDepartamento(nombreDepartamento, catalog):
+"""def obrasDepartamento(nombreDepartamento, catalog):
     cont = 0
     peso = 0.000
     listaObrasDepartamento = lt.newList()
@@ -608,7 +601,7 @@ def obrasDepartamento(nombreDepartamento, catalog):
             cont += 1
     listaObrasOrdenada = eliminarCampoVacio(ins.sort(listaObrasDepartamento, cmpArtworkByDate), "Date")
     listaTransporteOrdenada = ins.sort(listaObrasDepartamento, cmpArtworkByTransport)
-    return cont, listaObrasOrdenada, peso, listaTransporteOrdenada, totalTransporte(listaObrasDepartamento)
+    return cont, listaObrasOrdenada, peso, listaTransporteOrdenada, totalTransporte(listaObrasDepartamento)"""
 
 
 def eliminarCampoVacio(lista, nombreCampo):
@@ -618,29 +611,6 @@ def eliminarCampoVacio(lista, nombreCampo):
             lt.addLast(listaFiltrada, lt.getElement(lista, i))
     return listaFiltrada
 
-
-def totalObras(nombreArtista, catalog):
-    idArtista = obtenerIdArtista(nombreArtista, catalog)
-    listaTecnicas = lt.newList()
-    listaObras = lt.newList()
-
-    for artwork in catalog['artworks']['elements']:
-        limpio = artwork['ConstituentID'].replace(" ", "").replace("[", "").replace("]", "")
-        for artistId in limpio.split(','):
-            if artistId == idArtista:
-                tecnicaIncluida = False
-                for i in range(1, lt.size(listaTecnicas) + 1):
-                    if artwork['Medium'] == lt.getElement(listaTecnicas, i):
-                        tecnicaIncluida = True
-                        break
-                if not tecnicaIncluida:
-                    lt.addLast(listaTecnicas, artwork['Medium'])
-                lt.addLast(listaObras, artwork)
-
-    # Retorno la cantidad de obras del artista, la cantidad de tenicas diferentes que uso, el id del artista
-    # El nombre de la tecnica mas usada, la cantidad de veces que esta se uso y la lista de obras donde se aplico
-    tecnicaMayor, contMayor, listaObrasMayor = tecnicaMayorCantidad(listaTecnicas, listaObras)
-    return lt.size(listaObras), lt.size(listaTecnicas), idArtista, tecnicaMayor, contMayor, listaObrasMayor
 
 
 def Obrasmasantiguas(catalog, tecnica):
@@ -660,8 +630,35 @@ def listaUnicaObras(listaObrasNacionalidad):
         if not existe: 
             lt.addLast(listaUnica,lt.getElement(listaObrasNacionalidad,i))
     return listaUnica
-   
+def obtenerNombresArtistas(artwork, catalog):
+    limpio = artwork['ConstituentID'].replace(" ", "").replace("[", "").replace("]", "")
+    nombresArtistas = ""
+    for artistId in limpio.split(','):
+        for artist in catalog['artist']['elements']:
+            if artistId == artist['ConstituentID']:
+                nombresArtistas += artist['DisplayName'] + "\n"
+    return nombresArtistas 
+def req5(catalog,departamento):
+    exist=mp.contains(catalog['Departamento'],departamento)
+    if exist:
+        entry=mp.get(catalog['Departamento'],departamento)
+        listaobras= me.getValue(entry)
+        tot_obras=lt.size(listaobras)
+        tot_precio=0
+        tot_peso=0
+        for obra in lt.iterator(listaobras):
+            tot_precio+= obtenerValorObra(obra) 
+            if obra["Weight"] != "" :
+                tot_peso+=float(obra["Weight"])
+            obra['Transport'] = round(obtenerValorObra(obra), 3)
+    listaObrasOrdenada = eliminarCampoVacio(ins.sort(listaobras, cmpArtworkByDate), "Date")
+    listaTransporteOrdenada = ins.sort(listaobras, cmpArtworkByTransport)
+        
             
+
+    return(tot_obras,tot_peso,tot_precio,listaObrasOrdenada,listaTransporteOrdenada)
+   
+       
 
 
 # Funciones de ordenamiento
