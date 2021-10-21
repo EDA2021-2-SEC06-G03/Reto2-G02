@@ -136,13 +136,24 @@ def imprimir3Nacionalidades(lista):
 
 
 def imprimirObrasTecnica(lista):
-    x = PrettyTable()
-    x.field_names = ['Titulo', 'Fecha', 'Medio', 'Dimensiones']
-    for i in range(1, lt.size(lista) + 1):
-        x.add_row([lt.getElement(lista, i).get('Title'), lt.getElement(lista, i).get('Date'),
-                   lt.getElement(lista, i).get('Medium'), lt.getElement(lista, i).get('Dimensions')])
-    print(x)
+    if lt.size(lista)>=6:   
+        lista = primerosYUltimos(lista)
+    for obra in lt.iterator(lista):
+        print()
+        print('Titulo: ',obra["Title"])
+        print('Artista(s): ',obra['Artist'])
+        print('Fecha  Adquisicion: ' ,obra['DateAcquired'])
+        print('Medio: '  ,obra['Medium'])
+        print('Dimensiones : '  ,obra['Dimensions'])
+        print('Departamneto : '  ,obra['Department'])
+        print('Clasificasion : '  ,obra['Classification'])
+        print('URL: '  ,obra['URL'])
 
+
+
+
+
+    
 
 def imprimirObrasTransportar(lista):
     if lt.size(lista)>=5:   
@@ -170,11 +181,14 @@ def imprimirObrasMasantiguas(lista):
         print()
         print('Obra ID: ',obra['ObjectID'])
         print('Titulo: ',obra["Title"])
+        print('Medio: '  ,obra['Medium'])
+        print('Fecha  de la obra: ' ,obra['Date'])
+        print('Dimensiones : '  ,obra['Dimensions'])
         print('Artista(s): ',obra['Artist'])
         print('Clasificasion : '  ,obra['Classification'])
-        print('Fecha  de la obra: ' ,obra['Date'])
-        print('Medio: '  ,obra['Medium'])
-        print('Dimensiones : '  ,obra['Dimensions'])
+        
+        
+        
         print('Costo: '  ,obra['Transport'])
         print('URL: '  ,obra['URL'])
 
@@ -280,6 +294,7 @@ def resp_req2():
 
 def resp_req3():
     nombre = input("Ingresa el nombre del artista: ")
+    Inicio= process_time()
     tot_obras,tot_tecnica,tecnicaMayor,lista_tecnicamayor,id=controller.tecnica(catalog,nombre)
     print("============ Respuesta Requerimiento 3 ============")
     print("El total de la obras del artista " + nombre + " identificado con el ID" +str(id) +"es de: " + str(tot_obras))
@@ -287,6 +302,9 @@ def resp_req3():
     print("La tecnica mas utilizada es la de: " + tecnicaMayor + " y su cantidad de obras con esta tecnica es de: " + str(
             lt.size(lista_tecnicamayor)))
     imprimirObrasTecnica(lista_tecnicamayor)
+    Final=process_time()
+    TiempoTotal=Final-Inicio
+    print("tarda:"+str(TiempoTotal)+"Mseg")
     
     
 
